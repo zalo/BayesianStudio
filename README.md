@@ -29,6 +29,16 @@ Live at **https://bayes.sels.tech**.
   a probability table; a mixture sizes the drawdown; an allocation decision with log utility
   shows what the uncertainty is worth to a portfolio.
 
+## Reading a card
+
+Every node card carries its defining equation, typeset with KaTeX, and the same equation read
+aloud in plain English beneath it. Each input the equation uses gets its own colour, used for
+the term in the equation, the word in the sentence, the port the incoming wire lands on, and the
+arriving end of the wire itself, so following a connection tells you which variable it feeds.
+Wires leave a card in its family colour. Numbers in an equation are editable in place: click a
+coefficient, threshold, or distribution parameter, type, and press Enter; the model re-runs.
+Variable names are not editable on the card because they are the connected inputs.
+
 ## Documents
 
 A model is one JSON document. Semantics live in `nodes`; layout is a separate, optional map, so an

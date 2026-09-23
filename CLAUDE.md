@@ -112,6 +112,7 @@ bundler resolution), even though the files are `.ts`.
   projection (`graph.ts::toFlow` derives React Flow nodes/edges, with a layered auto-layout for
   nodes missing a `layout` entry). Every mutation builds a new doc, runs `validateDoc`, and only
   commits if `ok`; mutators return an error string / issue list instead of throwing.
+  `replaceNode(id, node)` is the generic same-id swap used by in-place equation edits.
 - Inference runs in a Web Worker (`engine.worker.ts`). The store keeps a latest-wins queue: at most
   one run in flight, edits collapse into one queued run, and mid-drag `scrubNodeDist` runs a
   reduced-sample preview (`PREVIEW_SAMPLES`) while `setNodeDist` on release runs full quality.
@@ -132,13 +133,34 @@ bundler resolution), even though the files are `.ts`.
   `StudioNode`, `Inspector` render `Summary` data. A family's `log` flag may be a function of
   the distribution (percentiles plot on a log axis only when positive); the axis transform is
   frozen for the duration of a drag alongside the domain.
+- **Equations.** `explain.ts::describeNode(node, byId)` gives every node kind a KaTeX source
+  string, a plain-English reading (`Segment[]`: words and coloured variables), the inputs in
+  reading order, and editable numeric *slots*. `components/Equation.tsx` renders it (KaTeX
+  `renderToString` with `trust` limited to `\htmlClass`/`\htmlData`), shrinks the typeset
+  line to fit the card by measuring the span (fonts load late, so a ResizeObserver re-measures),
+  and turns a click on a `.eq-num` into an inline field whose commit calls the slot's `apply`
+  and then `store.replaceNode`. Expression literals carry `src` positions from the parser
+  (`RpnItem.pos/len` → `ExprAst.num.src`) so a slot splices the typed text into the source;
+  distribution parameters, comparator thresholds, `k`, and CRRA γ are slots too. Variables are
+  never editable there. Adding a function means extending `fnTex` and `fnWords` as well.
+- **Ports and edges.** A card renders one target `Handle` per input (id = the input's node id)
+  inside its legend row, so wires arrive next to the variable they feed; `graph.ts` sets
+  `targetHandle` accordingly and `StudioNode` calls `useUpdateNodeInternals` when the input
+  list changes. The source handle sits on the readout row. `StudioEdge` draws a gradient from
+  the source's family accent to the target's variable colour (`userSpaceOnUse`, so it follows
+  the actual endpoints).
 - **Theme.** `theme.css` is token-driven: dark by default, light via `prefers-color-scheme` or an
   explicit `data-theme` on `<html>` (toggle in the top bar, persisted in `localStorage` under
-  `bayes-theme`, applied pre-paint by an inline script in `index.html`). Colour means one thing:
-  node family. `graph.ts::familyAccent(kind)` returns the CSS variable, used for card rules,
-  readouts, and the edges leaving a node. Fonts are Instrument Sans (words) and DM Mono
-  (numbers) from Google Fonts. Kind labels come from `FAMILY_LABEL` in sentence case; don't
-  reintroduce uppercase mono eyebrows or middle-dot separated metadata.
+  `bayes-theme`, applied pre-paint by an inline script in `index.html`). Colour means two
+  things. Across the canvas: node family, via `graph.ts::familyAccent(kind)` on card rules,
+  kind labels, the out-port, and the start of each edge. Inside a card: which input is which,
+  via `--var-0…7` (`explain.ts::varClass/varColour`, assigned in reading order) on equation
+  terms, sentence words, in-ports, legend rows, and the end of each edge. The palette is
+  ordered so early indexes avoid the family hues. Fonts are Instrument Sans (words), DM Mono
+  (numbers), and KaTeX's own faces for equations. Kind labels come from `FAMILY_LABEL` in
+  sentence case; don't reintroduce uppercase mono eyebrows or middle-dot separated metadata.
+- Cards are about 200–400 px tall (priors shortest; multi-case mixtures and many-input formulas tallest), so stored
+  layouts space rows roughly 320 px apart and the auto-layout uses a 340 × 220 grid.
 
 ## Conventions worth knowing
 

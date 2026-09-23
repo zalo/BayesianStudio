@@ -44,6 +44,12 @@ interface StudioState {
   /** Replace the distribution of a prior (or a sourced prior's fallback). */
   setNodeDist: (id: string, dist: Dist) => string | null;
   /**
+   * Swap one node for an edited copy with the same id (in-place equation
+   * edits). Validates first; returns an error message or null and runs at
+   * full quality on success.
+   */
+  replaceNode: (id: string, node: AnyNode) => string | null;
+  /**
    * Same as setNodeDist but for mid-drag frames: applies immediately and runs
    * a fast preview (reduced samples, latest-wins) so the whole graph tracks
    * the slider in real time. Call setNodeDist on release for full quality.
@@ -339,6 +345,15 @@ export const useStudio = create<StudioState>((set, get) => {
       return null;
     },
 
+    replaceNode: (id, node) => {
+      const applied = withNode(get().doc, id, node);
+      if (typeof applied === "string") return applied;
+      clearTimeout(debounceTimer);
+      set({ doc: applied.doc, exampleKey: null, issues: applied.issues });
+      requestRun(false);
+      return null;
+    },
+
     scrubNodeDist: (id, dist) => {
       const applied = withDist(get().doc, id, dist);
       if (typeof applied === "string") return; // ignore transient invalid drag states
@@ -366,11 +381,23 @@ function withDist(
   } else {
     return `'${node.kind}' nodes have no editable distribution`;
   }
+  return withNode(doc, id, replacement);
+}
+
+/** Doc with one node swapped for `replacement` (same id), or the first validation error. */
+function withNode(
+  doc: BayesDoc,
+  id: string,
+  replacement: AnyNode,
+): { doc: BayesDoc; issues: ValidationIssue[] } | string {
+  const idx = doc.nodes.findIndex((n) => n.id === id);
+  if (idx === -1) return `Node '${id}' no longer exists`;
+  if (replacement.id !== id) return "In-place edits cannot rename a node";
   const nodes = doc.nodes.slice();
   nodes[idx] = replacement;
   const res = validateDoc({ ...doc, nodes });
   if (!res.ok || !res.doc) {
-    return res.issues.find((i) => i.severity === "error")?.message ?? "Invalid distribution";
+    return res.issues.find((i) => i.severity === "error")?.message ?? "Invalid edit";
   }
   return { doc: res.doc, issues: res.issues };
 }

@@ -3,8 +3,10 @@
 
    The canvas is a plotting field: a deep indigo ground with a fine graph
    grid, and every node is an instrument readout whose number is the hero.
-   Colour encodes exactly one thing — the node family — and appears as the
-   left rule of a card, the ink of its readout, and the edge leaving it.
+   Colour encodes two things. Across the canvas, the node family: the left
+   rule of a card, its kind label, and the edge leaving it. Inside a card,
+   which input is which: every variable in the equation, the sentence under
+   it, and its port share a colour, and the edge arrives in that colour.
    Two typefaces: Instrument Sans for words, DM Mono for anything numeric.
    Light theme via tokens; follows the system unless the user toggles.
    ------------------------------------------------------------------------ */
@@ -32,6 +34,17 @@
   --acc-utility: #f0c24b;
   --acc-output: #aeb8cc;
   --danger: #ff7070;
+
+  /* Variable colours: which input is which, inside one card's equation.
+     Ordered so the first few avoid the family accents (blue, teal, pink…). */
+  --var-0: #ff7b72;
+  --var-1: #79c0ff;
+  --var-2: #d2a8ff;
+  --var-3: #e3b341;
+  --var-4: #56d364;
+  --var-5: #ffa657;
+  --var-6: #39d3f5;
+  --var-7: #f778ba;
 
   --font-ui: "Instrument Sans", system-ui, sans-serif;
   --font-num: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -63,6 +76,14 @@
     --acc-utility: #b48400;
     --acc-output: #6b7891;
     --danger: #d43d3d;
+    --var-0: #cf222e;
+    --var-1: #0969da;
+    --var-2: #8250df;
+    --var-3: #9a6700;
+    --var-4: #1a7f37;
+    --var-5: #bc4c00;
+    --var-6: #0b7285;
+    --var-7: #bf3989;
     --shadow-node: 0 1px 2px rgba(19, 26, 40, 0.08), 0 8px 24px rgba(19, 26, 40, 0.1);
   }
 }
@@ -87,6 +108,14 @@
   --acc-utility: #b48400;
   --acc-output: #6b7891;
   --danger: #d43d3d;
+  --var-0: #cf222e;
+  --var-1: #0969da;
+  --var-2: #8250df;
+  --var-3: #9a6700;
+  --var-4: #1a7f37;
+  --var-5: #bc4c00;
+  --var-6: #0b7285;
+  --var-7: #bf3989;
   --shadow-node: 0 1px 2px rgba(19, 26, 40, 0.08), 0 8px 24px rgba(19, 26, 40, 0.1);
 }
 
@@ -290,6 +319,7 @@ select.example-select:hover {
 .react-flow__edge-path {
   stroke: var(--ink-3);
   stroke-width: 1.5;
+  stroke-opacity: 0.6;
 }
 
 .react-flow__edge.selected .react-flow__edge-path,
@@ -333,12 +363,17 @@ select.example-select:hover {
 /* ---- studio node -------------------------------------------------------- */
 
 .snode {
-  width: 240px;
+  position: relative;
+  width: 264px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow-node);
-  overflow: hidden;
+}
+
+.snode > :last-child {
+  border-bottom-left-radius: calc(var(--radius) - 1px);
+  border-bottom-right-radius: calc(var(--radius) - 1px);
 }
 
 .snode.selected {
@@ -377,11 +412,22 @@ select.example-select:hover {
   background: var(--surface-2);
 }
 
+.snode .row {
+  position: relative;
+  margin: 0 -12px;
+  padding: 0 12px;
+}
+
 .snode .stat {
   display: flex;
   align-items: baseline;
   gap: 8px;
   margin-bottom: 2px;
+}
+
+.snode .body.slim {
+  padding: 6px 12px;
+  min-height: 14px;
 }
 
 .snode .stat .value {
@@ -429,6 +475,221 @@ select.example-select:hover {
   font: 400 11px var(--font-ui);
   color: var(--ink-3);
   padding: 4px 0;
+}
+
+/* ---- equations ----------------------------------------------------------- */
+
+/* Variable ink, shared by the equation, the sentence, ports, and legends. */
+.eqv.v0 { color: var(--var-0); }
+.eqv.v1 { color: var(--var-1); }
+.eqv.v2 { color: var(--var-2); }
+.eqv.v3 { color: var(--var-3); }
+.eqv.v4 { color: var(--var-4); }
+.eqv.v5 { color: var(--var-5); }
+.eqv.v6 { color: var(--var-6); }
+.eqv.v7 { color: var(--var-7); }
+
+.eq {
+  position: relative;
+  color: var(--ink);
+}
+
+.snode .eq {
+  padding: 9px 12px 8px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 12.5px;
+}
+
+.eq-clip {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  line-height: 1.15;
+}
+
+.eq-tex {
+  display: inline-block;
+  width: max-content; /* natural width, so the fit measurement sees the overflow */
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.eq-tex .katex {
+  font-size: 1.12em;
+  white-space: nowrap;
+}
+
+.eq-tex .katex-html {
+  white-space: nowrap;
+}
+
+.eq-self {
+  color: var(--ink);
+}
+
+.eq-words {
+  margin-top: 6px;
+  font: 400 11px/1.5 var(--font-ui);
+  color: var(--ink-2);
+}
+
+.eq-block .eq-words {
+  font-size: 13px;
+  line-height: 1.55;
+  max-width: 60ch;
+}
+
+.eq-words .eqv {
+  font-weight: 500;
+}
+
+/* Editable numbers: a dotted underline says "this one you can change". */
+.eq.editable .eq-num {
+  cursor: text;
+  border-bottom: 1px dotted currentColor;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.eq.editable .eq-num:hover {
+  background: color-mix(in srgb, var(--acc, var(--ink)) 16%, transparent);
+}
+
+.eq-edit {
+  position: absolute;
+  z-index: 5;
+  box-sizing: border-box;
+  font: 500 12px var(--font-num);
+  color: var(--ink);
+  background: var(--surface-3);
+  border: 1px solid var(--acc, var(--ink-2));
+  border-radius: 4px;
+  padding: 0 5px;
+  outline: none;
+  box-shadow: 0 4px 14px rgba(3, 6, 14, 0.35);
+}
+
+.eq-edit.invalid {
+  border-color: var(--danger);
+}
+
+.eq-error {
+  font: 400 11px/1.4 var(--font-ui);
+  color: var(--danger);
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+
+/* ---- inputs (one port per variable) ---------------------------------------- */
+
+.snode .inputs {
+  border-top: 1px solid var(--line-soft);
+  padding: 5px 0;
+}
+
+.snode .in-row {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 2px 12px 2px 16px;
+  font-size: 11px;
+  line-height: 1.4;
+  min-width: 0;
+}
+
+.in-name {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.in-title {
+  flex: 1;
+  min-width: 0;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.react-flow__handle.in-port {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--pc, var(--ink-3));
+  background: var(--pc, var(--surface));
+  top: 50%;
+}
+
+.react-flow__handle.out-port {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--acc, var(--ink-3));
+  background: var(--acc, var(--surface));
+  top: 50%;
+}
+
+/* ---- inspector equation block --------------------------------------------- */
+
+.eq-block {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--acc, var(--line));
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  padding: 12px 14px 10px;
+  margin: 0 0 16px;
+  font-size: 14px;
+}
+
+.eq-block .eq-clip {
+  padding: 4px 0 6px;
+}
+
+.eq-block .eq-tex .katex {
+  font-size: 1.25em;
+}
+
+.eq-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 10px;
+  border-top: 1px solid var(--line-soft);
+  padding-top: 8px;
+}
+
+.legend-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  font: 400 12.5px var(--font-ui);
+  color: var(--ink-2);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 3px 6px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.legend-row:hover {
+  background: var(--surface-3);
+}
+
+.legend-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pc, var(--ink-3));
+  align-self: center;
+}
+
+.eq-hint {
+  margin-top: 8px;
+  font: 400 11px var(--font-ui);
+  color: var(--ink-3);
 }
 
 /* ---- inspector ---------------------------------------------------------- */

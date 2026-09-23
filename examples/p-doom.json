@@ -96,16 +96,16 @@
   ],
   "layout": {
     "years_to_agi": { "x": 0, "y": 0 },
-    "horizon": { "x": 0, "y": 190 },
-    "p_agi_by_2100": { "x": 340, "y": 90 },
-    "p_misaligned": { "x": 0, "y": 420 },
-    "p_deployed": { "x": 0, "y": 610 },
-    "p_takeover": { "x": 0, "y": 800 },
-    "p_misalignment_doom": { "x": 680, "y": 400 },
-    "p_misuse_lockin": { "x": 340, "y": 760 },
-    "p_doom": { "x": 1020, "y": 560 },
-    "risk_above_10pct": { "x": 1360, "y": 700 },
-    "headline_doom": { "x": 1360, "y": 520 },
-    "headline_misalignment": { "x": 1020, "y": 330 }
+    "horizon": { "x": 0, "y": 323 },
+    "p_agi_by_2100": { "x": 340, "y": 153 },
+    "p_misaligned": { "x": 0, "y": 714 },
+    "p_deployed": { "x": 0, "y": 1037 },
+    "p_takeover": { "x": 0, "y": 1360 },
+    "p_misalignment_doom": { "x": 680, "y": 680 },
+    "p_misuse_lockin": { "x": 340, "y": 1292 },
+    "p_doom": { "x": 1020, "y": 952 },
+    "risk_above_10pct": { "x": 1360, "y": 1190 },
+    "headline_doom": { "x": 1360, "y": 884 },
+    "headline_misalignment": { "x": 1020, "y": 561 }
   }
 }

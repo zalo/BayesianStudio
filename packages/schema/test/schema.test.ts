@@ -13,6 +13,8 @@ import {
   percentileQuantile,
   percentileDensity,
   feasibleP50Range,
+  parseExprAst,
+  astVariables,
   type BayesDoc,
 } from "../src/index.js";
 
@@ -70,6 +72,40 @@ describe("expression parser", () => {
     // keywords cannot be node ids
     const res = validateDoc(minimal([{ id: "and", kind: "prior.dist", dist: { dist: "point", value: 1 } }]));
     expect(res.ok).toBe(false);
+  });
+});
+
+describe("expression syntax tree", () => {
+  it("rebuilds precedence and associativity from RPN", () => {
+    expect(parseExprAst("a + b * c")).toEqual({
+      t: "bin",
+      op: "+",
+      l: { t: "var", name: "a" },
+      r: { t: "bin", op: "*", l: { t: "var", name: "b" }, r: { t: "var", name: "c" } },
+    });
+    // a - b - c is (a - b) - c; a ^ b ^ c is a ^ (b ^ c)
+    const sub = parseExprAst("a - b - c");
+    expect(sub.t === "bin" && sub.l.t === "bin" && sub.r.t === "var").toBe(true);
+    const pow = parseExprAst("a ^ b ^ c");
+    expect(pow.t === "bin" && pow.l.t === "var" && pow.r.t === "bin").toBe(true);
+  });
+
+  it("keeps function arguments in order and folds constants", () => {
+    expect(parseExprAst("if(pop, -drawdown, 2 * pi)")).toEqual({
+      t: "fn",
+      name: "if",
+      args: [
+        { t: "var", name: "pop" },
+        { t: "un", op: "neg", x: { t: "var", name: "drawdown" } },
+        // literal 2 knows where it sits in the source; the constant pi does not
+        { t: "bin", op: "*", l: { t: "num", v: 2, src: { pos: 19, len: 1 } }, r: { t: "num", v: Math.PI } },
+      ],
+    });
+  });
+
+  it("lists variables in source order without duplicates", () => {
+    const ast = parseExprAst("p_doom + (p_agi - p_doom) * p_lockin");
+    expect(astVariables(ast)).toEqual(["p_doom", "p_agi", "p_lockin"]);
   });
 });
 

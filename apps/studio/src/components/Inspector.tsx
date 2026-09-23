@@ -6,6 +6,8 @@ import { collectDiagnostics } from "../diagnostics.js";
 import { NodeEditor } from "./NodeEditor.js";
 import { DistEditor } from "./DistEditor.js";
 import { DiagnosticsList } from "./Diagnostics.js";
+import { Equation } from "./Equation.js";
+import { describeNode, humanize, varClass, varColour } from "../explain.js";
 import type { DecisionAnalysis } from "@bayes-studio/engine";
 
 function DecisionPanel({ analysis }: { analysis: DecisionAnalysis }) {
@@ -47,7 +49,13 @@ export function Inspector() {
   const select = useStudio((s) => s.select);
   const setNodeDist = useStudio((s) => s.setNodeDist);
   const scrubNodeDist = useStudio((s) => s.scrubNodeDist);
+  const replaceNode = useStudio((s) => s.replaceNode);
   const node = doc.nodes.find((n) => n.id === selectedId);
+  const desc = useMemo(() => {
+    if (!node) return null;
+    const byId = new Map(doc.nodes.map((n) => [n.id, n]));
+    return describeNode(node, byId);
+  }, [node, doc.nodes]);
 
   const diagnostics = useMemo(() => collectDiagnostics(issues, results, status), [issues, results, status]);
 
@@ -112,6 +120,30 @@ export function Inspector() {
         <span>{node.id}</span>
         {result?.unit && <span className="unit-chip">{result.unit}</span>}
       </div>
+      {desc && (desc.latex || desc.error) && (
+        <div className="eq-block">
+          <Equation desc={desc} fit onEdit={(next) => replaceNode(node.id, next)} />
+          {desc.inputs.length > 0 && (
+            <div className="eq-legend">
+              {desc.inputs.map((input) => (
+                <button
+                  type="button"
+                  className="legend-row"
+                  key={input.id}
+                  style={{ "--pc": varColour(input.index) } as React.CSSProperties}
+                  onClick={() => select(input.id)}
+                  title={`Go to ${input.id}`}
+                >
+                  <span className="legend-dot" />
+                  <span className={`in-name eqv ${varClass(input.index)}`}>{humanize(input.id)}</span>
+                  <span className="in-title">{input.title ?? input.id}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {desc.slots.length > 0 && <div className="eq-hint">Click a number in the equation to change it.</div>}
+        </div>
+      )}
       {node.notes && <p className="notes">{node.notes}</p>}
       <DiagnosticsList items={diagnostics.filter((d) => d.nodeId === node.id)} />
 

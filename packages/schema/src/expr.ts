@@ -25,7 +25,8 @@ export type UnOp = "neg" | "not";
 export type Op = BinOp | UnOp;
 
 export type RpnItem =
-  | { t: "num"; v: number }
+  /** `pos`/`len` locate a literal in the source; folded constants (`pi`, `true`, …) carry neither. */
+  | { t: "num"; v: number; pos?: number; len?: number }
   | { t: "var"; name: string }
   | { t: "op"; op: Op }
   | { t: "fn"; name: FnName; arity: number };
@@ -106,7 +107,7 @@ export class ExprError extends Error {
 }
 
 type Token =
-  | { t: "num"; v: number; pos: number }
+  | { t: "num"; v: number; pos: number; len: number }
   | { t: "ident"; name: string; pos: number }
   | { t: "op"; op: BinOp; pos: number }
   | { t: "kw"; name: "and" | "or" | "not"; pos: number }
@@ -125,13 +126,13 @@ function tokenize(src: string): Token[] {
     }
     if (c >= "0" && c <= "9") {
       const m = /^\d+(\.\d+)?([eE][+-]?\d+)?/.exec(src.slice(i))!;
-      tokens.push({ t: "num", v: Number(m[0]), pos: i });
+      tokens.push({ t: "num", v: Number(m[0]), pos: i, len: m[0].length });
       i += m[0].length;
       continue;
     }
     if (c === "." && src[i + 1] >= "0" && src[i + 1] <= "9") {
       const m = /^\.\d+([eE][+-]?\d+)?/.exec(src.slice(i))!;
-      tokens.push({ t: "num", v: Number(m[0]), pos: i });
+      tokens.push({ t: "num", v: Number(m[0]), pos: i, len: m[0].length });
       i += m[0].length;
       continue;
     }
@@ -263,7 +264,7 @@ export function parseExpr(src: string): RpnItem[] {
     switch (tok.t) {
       case "num":
         if (prevWasValue) throw new ExprError("Unexpected number", tok.pos);
-        output.push({ t: "num", v: tok.v });
+        output.push({ t: "num", v: tok.v, pos: tok.pos, len: tok.len });
         prevWasValue = true;
         break;
       case "ident": {

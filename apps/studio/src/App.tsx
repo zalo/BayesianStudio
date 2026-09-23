@@ -5,6 +5,7 @@ import {
   Controls,
   ReactFlow,
   useNodesState,
+  type EdgeTypes,
   type NodeMouseHandler,
   type NodeTypes,
 } from "@xyflow/react";
@@ -12,11 +13,13 @@ import "@xyflow/react/dist/style.css";
 import { useStudio } from "./store.js";
 import { toFlow, type StudioFlowNode } from "./graph.js";
 import { StudioNode } from "./components/StudioNode.js";
+import { StudioEdge } from "./components/StudioEdge.js";
 import { Inspector } from "./components/Inspector.js";
 import { AddMenu } from "./components/AddMenu.js";
 import { EXAMPLES } from "./examples.js";
 
 const nodeTypes: NodeTypes = { studio: StudioNode };
+const edgeTypes: EdgeTypes = { studio: StudioEdge };
 
 type Theme = "dark" | "light";
 const THEME_KEY = "bayes-theme";
@@ -167,6 +170,7 @@ function Canvas() {
         nodes={nodes}
         edges={flow.edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onNodeClick={onNodeClick}
         onPaneClick={() => select(null)}
