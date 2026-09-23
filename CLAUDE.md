@@ -81,7 +81,11 @@ bundler resolution), even though the files are `.ts`.
   `units-derive.ts`.
 - `unit.ts` + `units-derive.ts`: units are free-form exponent vectors (`"stars/yr"`, `"$"`),
   declared on priors/mixtures and *derived* through formulas in topological order. A `unit` on a
-  formula is an assertion. Log/CRRA utility transforms make the result dimensionless.
+  formula is an assertion. Log/CRRA utility transforms make the result dimensionless. `%` in a
+  unit string is a scale marker, not a dimension: `"%"` parses dimensionless and
+  `"%·civilizations/planets"` to civilizations/planets, while `deriveUnits` keeps a leading `%`
+  in that node's display unit. The ×100 is not tracked, so formulas consuming a percent divide
+  by 100 explicitly (the Drake example does this at every stage).
 
 ### `packages/engine` — Monte Carlo inference, zero DOM deps
 

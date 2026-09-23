@@ -447,6 +447,11 @@ select.example-select:hover {
   color: var(--acc, var(--ink-2));
 }
 
+/* "31.6%" reads as one token; other units keep the gap. */
+.snode .stat .unit.pct {
+  margin-left: -7px;
+}
+
 .unit-chip {
   font: 400 11px var(--font-num);
   color: var(--acc, var(--ink-2));

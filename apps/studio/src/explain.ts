@@ -128,7 +128,14 @@ function numTex(v: number): string {
 }
 
 function unitTex(unit: string | undefined): string {
-  return unit ? `\\ \\text{${texText(unit)}}` : "";
+  if (!unit) return "";
+  return unit === "%" ? "\\%" : `\\ \\text{${texText(unit)}}`;
+}
+
+/** A number with its unit: "35%" for percent, "12 yr" otherwise. */
+function withUnit(x: number, unit?: string): string {
+  if (!unit) return fmt(x);
+  return unit === "%" ? `${fmt(x)}%` : `${fmt(x)} ${unit}`;
 }
 
 const PREC: Record<BinOp | "neg" | "not", number> = {
@@ -257,25 +264,26 @@ function fnTex(name: FnName, args: ExprAst[], c: Ctx): string {
 type DistNum = (v: number, key: string) => string;
 
 function distTex(d: Dist, unit: string | undefined, n: DistNum): string {
+  const u = unitTex(unit);
   switch (d.dist) {
     case "point":
-      return `= ${n(d.value, "value")}${unitTex(unit)}`;
+      return `= ${n(d.value, "value")}${u}`;
     case "uniform":
-      return `\\sim \\mathrm{Uniform}\\left(${n(d.min, "min")},\\ ${n(d.max, "max")}\\right)`;
+      return `\\sim \\mathrm{Uniform}\\left(${n(d.min, "min")},\\ ${n(d.max, "max")}\\right)${u}`;
     case "loguniform":
-      return `\\sim \\mathrm{LogUniform}\\left(${n(d.min, "min")},\\ ${n(d.max, "max")}\\right)`;
+      return `\\sim \\mathrm{LogUniform}\\left(${n(d.min, "min")},\\ ${n(d.max, "max")}\\right)${u}`;
     case "normal":
-      return `\\sim \\mathrm{Normal}\\left(\\mu{=}${n(d.mu, "mu")},\\ \\sigma{=}${n(d.sigma, "sigma")}\\right)`;
+      return `\\sim \\mathrm{Normal}\\left(\\mu{=}${n(d.mu, "mu")},\\ \\sigma{=}${n(d.sigma, "sigma")}\\right)${u}`;
     case "lognormal":
-      return `\\sim \\mathrm{LogNormal}\\left(\\mu{=}${n(d.mu, "mu")},\\ \\sigma{=}${n(d.sigma, "sigma")}\\right)`;
+      return `\\sim \\mathrm{LogNormal}\\left(\\mu{=}${n(d.mu, "mu")},\\ \\sigma{=}${n(d.sigma, "sigma")}\\right)${u}`;
     case "beta":
       return `\\sim \\mathrm{Beta}\\left(${n(d.alpha, "alpha")},\\ ${n(d.beta, "beta")}\\right)`;
     case "bernoulli":
       return `\\sim \\mathrm{Bernoulli}\\left(${n(d.p, "p")}\\right)`;
     case "triangular":
-      return `\\sim \\mathrm{Triangular}\\left(${n(d.min, "min")},\\ ${n(d.mode, "mode")},\\ ${n(d.max, "max")}\\right)`;
+      return `\\sim \\mathrm{Triangular}\\left(${n(d.min, "min")},\\ ${n(d.mode, "mode")},\\ ${n(d.max, "max")}\\right)${u}`;
     case "pert":
-      return `\\sim \\mathrm{PERT}\\left(${n(d.min, "min")},\\ ${n(d.mode, "mode")},\\ ${n(d.max, "max")}\\right)`;
+      return `\\sim \\mathrm{PERT}\\left(${n(d.min, "min")},\\ ${n(d.mode, "mode")},\\ ${n(d.max, "max")}\\right)${u}`;
     case "categorical": {
       // Probabilities must sum to one, so they are not offered one at a time.
       if (d.labels.length > 4) return `\\sim \\text{one of ${d.labels.length} labels}`;
@@ -287,7 +295,7 @@ function distTex(d: Dist, unit: string | undefined, n: DistNum): string {
       const parts = [`P_{10}{=}${n(d.p10, "p10")}`];
       if (d.p50 !== undefined) parts.push(`P_{50}{=}${n(d.p50, "p50")}`);
       parts.push(`P_{90}{=}${n(d.p90, "p90")}`);
-      return `\\sim \\left(${parts.join(",\\ ")}\\right)${unitTex(unit)}`;
+      return `\\sim \\left(${parts.join(",\\ ")}\\right)${u}`;
     }
   }
 }
@@ -425,7 +433,7 @@ function ordinalPercent(p: number): string {
 }
 
 function distWords(d: Dist, unit?: string): S {
-  const q = (x: number) => (unit ? `${fmt(x)} ${unit}` : fmt(x));
+  const q = (x: number) => withUnit(x, unit);
   switch (d.dist) {
     case "point":
       return [`fixed at ${q(d.value)}`];

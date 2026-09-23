@@ -279,6 +279,24 @@ describe("validateDoc", () => {
 });
 
 describe("dimensional analysis", () => {
+  it("treats % as a dimensionless scale marker that survives in the display unit", () => {
+    expect(parseUnit("%")).toEqual({});
+    expect(parseUnit("%·civilizations/planets")).toEqual({ civilizations: 1, planets: -1 });
+    const res = validateDoc(
+      minimal([
+        { id: "rate", kind: "prior.dist", unit: "stars/yr", dist: { dist: "point", value: 10 } },
+        { id: "share", kind: "prior.dist", unit: "%", dist: { dist: "point", value: 50 } },
+        { id: "yield", kind: "prior.dist", unit: "%·planets/stars", dist: { dist: "point", value: 200 } },
+        { id: "with_planets", kind: "formula", expr: "rate * share / 100", unit: "stars/yr" },
+        { id: "planets", kind: "formula", expr: "with_planets * yield / 100", unit: "planets/yr" },
+      ]) as BayesDoc,
+    );
+    expect(res.ok).toBe(true);
+    expect(res.units?.share).toBe("%");
+    expect(res.units?.yield).toBe("% planets/stars");
+    expect(res.units?.planets).toBe("planets/yr");
+  });
+
   it("parses and formats unit strings canonically", () => {
     expect(formatUnit(parseUnit("$/yr"))).toBe("$/yr");
     expect(formatUnit(parseUnit("stars*yr^-1"))).toBe("stars/yr");

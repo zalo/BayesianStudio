@@ -6,7 +6,9 @@ import drake from "../../../examples/drake.json";
  * Golden test — Phase 0 exit criterion.
  *
  * All seven Drake priors are log-uniform, so ln(N) is a sum of independent
- * uniforms. That gives closed forms to test against:
+ * uniforms (the example chains them stage by stage and states the four
+ * fractions in percent, which the stage formulas divide by 100 — the
+ * product is unchanged). That gives closed forms to test against:
  *   - median(N) = Π geometric-mean(lo, hi)  (symmetric summands in log space)
  *   - P(N < 1) ≈ Φ(-μ/σ) with μ = Σ ln(gm), σ² = Σ ln(hi/lo)²/12
  *   - mean(N)  = Π (hi-lo)/ln(hi/lo), enormously larger than the median
@@ -28,6 +30,7 @@ describe("Drake equation golden test", () => {
 
   it("evaluates all nodes in a valid topological order", () => {
     expect(result.order.indexOf("N")).toBeGreaterThan(result.order.indexOf("R_star"));
+    expect(result.order.indexOf("N")).toBeGreaterThan(result.order.indexOf("civilizations_per_yr"));
     expect(result.order.indexOf("alone")).toBeGreaterThan(result.order.indexOf("N"));
     expect(Object.keys(result.nodes)).toContain("N");
   });
@@ -35,6 +38,12 @@ describe("Drake equation golden test", () => {
   it("derives N's unit by cancellation: stars/yr · planets/star · civs/planet · yr → civilizations", () => {
     expect(result.nodes.N.unit).toBe("civilizations");
     expect(result.nodes.R_star.unit).toBe("stars/yr");
+    // Percent-valued priors keep the % in their display unit but combine as fractions.
+    expect(result.nodes.f_p.unit).toBe("%");
+    expect(result.nodes.f_c.unit).toBe("% civilizations/planets");
+    expect(result.nodes.stars_with_planets.unit).toBe("stars/yr");
+    expect(result.nodes.habitable_planets.unit).toBe("planets/yr");
+    expect(result.nodes.civilizations_per_yr.unit).toBe("civilizations/yr");
     expect(result.nodes.L.unit).toBe("yr");
     expect(result.nodes.alone.unit).toBeUndefined(); // booleans are dimensionless
     expect(result.nodes.result.unit).toBe("civilizations"); // output mirrors target

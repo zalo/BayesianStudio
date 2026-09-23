@@ -18,8 +18,10 @@ Live at **https://bayes.sels.tech**.
 
 ## Examples
 
-- **Drake Equation / Fermi Paradox** — seven order-of-magnitude priors multiplied out. The median
-  number of civilisations is modest while the mean is enormous, and P(we are alone) is not small.
+- **Drake Equation / Fermi Paradox** — a chain of conditionals: stars form, a percentage have
+  planets, some are habitable, on a percentage life emerges, and so on, each stage multiplying
+  the last. The median number of civilisations is modest while the mean is enormous, and P(we are
+  alone) is not small.
 - **The Great Filter** — the same structure with a hidden cause: where the filter sits couples
   life, intelligence and lifetime, with probability tables for "is it still ahead of us".
 - **P(doom): AI and the end of humanity** — a chain of credences from AI timelines through
@@ -68,7 +70,9 @@ lognormal, normal, or a metalog).
 Formulas: arithmetic, `^`, comparisons, `and`/`or`/`not`, `if(c, a, b)`, `min`/`max`/`clamp`,
 logs and roots, `logit`/`inv_logit`/`odds`/`prob`, and the distribution queries `cdf(node, x)`,
 `prob_lt`, `prob_gt`, `quantile(node, p)`. Units are declared on priors and derived through
-formulas; a `unit` on a formula is checked.
+formulas; a `unit` on a formula is checked. `%` in a unit marks a percent-valued quantity: it
+combines as the fraction it stands for (`%·planets/stars` is planets per star), the readout keeps
+the `%`, and formulas that use it divide by 100.
 
 ## Develop
 

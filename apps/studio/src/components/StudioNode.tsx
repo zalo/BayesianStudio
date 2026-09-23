@@ -75,7 +75,7 @@ export const StudioNode = memo(function StudioNode({ id, data, selected }: NodeP
       <>
         <div className="row stat">
           <span className="value">{headline.value}</span>
-          {result?.unit && <span className="unit">{result.unit}</span>}
+          {result?.unit && <span className={`unit${result.unit === "%" ? " pct" : ""}`}>{result.unit}</span>}
           <span className="label">{headline.label}</span>
           {outPort}
         </div>

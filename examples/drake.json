@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "title": "Drake Equation / Fermi Paradox",
-    "description": "N = R* · fp · ne · fl · fi · fc · L with order-of-magnitude (log-uniform) priors, after Sandberg, Drexler & Ord's 'Dissolving the Fermi Paradox'. The point of the exercise: with honest uncertainty, the MEDIAN number of communicating civilizations can be modest while the MEAN is enormous — and P(we are alone) is not small.",
+    "description": "The Drake equation as a chain of conditionals: stars form, some have planets, some of those planets are habitable, on some life emerges, some of that life becomes intelligent, some of it communicates, and it stays detectable for a while. Each stage multiplies the previous one by a percentage, with order-of-magnitude (log-uniform) priors after Sandberg, Drexler & Ord's 'Dissolving the Fermi Paradox'. The point of the exercise: with honest uncertainty, the MEDIAN number of communicating civilizations can be modest while the MEAN is enormous — and P(we are alone) is not small.",
     "seed": 42,
     "samples": 20000
   },
@@ -11,88 +11,104 @@
       "id": "R_star",
       "kind": "prior.dist",
       "unit": "stars/yr",
-      "title": "Star formation rate (stars/yr)",
+      "title": "Star formation rate",
       "notes": "Rate of star formation in the Milky Way. Astronomy pins this reasonably well; the range covers disagreement across surveys.",
-      "dist": {
-        "dist": "loguniform",
-        "min": 1,
-        "max": 100
-      }
+      "dist": { "dist": "loguniform", "min": 1, "max": 100 }
     },
     {
       "id": "f_p",
       "kind": "prior.dist",
-      "title": "Fraction of stars with planets",
-      "notes": "Post-Kepler this is close to 1; the lower bound is conservative.",
-      "dist": {
-        "dist": "loguniform",
-        "min": 0.1,
-        "max": 1
-      }
+      "unit": "%",
+      "title": "Percentage of stars with planets",
+      "notes": "Post-Kepler this is close to 100%; the lower bound is conservative.",
+      "dist": { "dist": "loguniform", "min": 10, "max": 100 }
+    },
+    {
+      "id": "stars_with_planets",
+      "kind": "formula",
+      "unit": "stars/yr",
+      "title": "Stars with planets, per year",
+      "notes": "Given a star forms, the chance it has planets.",
+      "expr": "R_star * f_p / 100"
     },
     {
       "id": "n_e",
       "kind": "prior.dist",
       "unit": "planets/stars",
-      "title": "Habitable planets per system",
+      "title": "Habitable planets per planetary system",
       "notes": "Planets per planetary system that could support life.",
-      "dist": {
-        "dist": "loguniform",
-        "min": 0.1,
-        "max": 10
-      }
+      "dist": { "dist": "loguniform", "min": 0.1, "max": 10 }
+    },
+    {
+      "id": "habitable_planets",
+      "kind": "formula",
+      "unit": "planets/yr",
+      "title": "Habitable planets, per year",
+      "notes": "Given a star with planets, how many of them could support life.",
+      "expr": "stars_with_planets * n_e"
     },
     {
       "id": "f_l",
       "kind": "prior.dist",
-      "title": "Fraction where life emerges",
-      "notes": "Abiogenesis probability given a habitable planet — genuinely unknown across orders of magnitude. This and f_i dominate the answer (check the tornado once sensitivity lands).",
-      "dist": {
-        "dist": "loguniform",
-        "min": 0.001,
-        "max": 1
-      }
+      "unit": "%",
+      "title": "Percentage of habitable planets where life emerges",
+      "notes": "Abiogenesis probability given a habitable planet — genuinely unknown across orders of magnitude. This and f_i dominate the answer.",
+      "dist": { "dist": "loguniform", "min": 0.1, "max": 100 }
+    },
+    {
+      "id": "planets_with_life",
+      "kind": "formula",
+      "unit": "planets/yr",
+      "title": "Planets where life emerges, per year",
+      "notes": "Given a habitable planet, the chance life gets started on it.",
+      "expr": "habitable_planets * f_l / 100"
     },
     {
       "id": "f_i",
       "kind": "prior.dist",
-      "title": "Fraction developing intelligence",
+      "unit": "%",
+      "title": "Percentage of living planets that develop intelligence",
       "notes": "Given life, probability that intelligence evolves.",
-      "dist": {
-        "dist": "loguniform",
-        "min": 0.001,
-        "max": 1
-      }
+      "dist": { "dist": "loguniform", "min": 0.1, "max": 100 }
+    },
+    {
+      "id": "planets_with_intelligence",
+      "kind": "formula",
+      "unit": "planets/yr",
+      "title": "Planets with intelligent life, per year",
+      "notes": "Given life, the chance it becomes intelligent.",
+      "expr": "planets_with_life * f_i / 100"
     },
     {
       "id": "f_c",
       "kind": "prior.dist",
-      "unit": "civilizations/planets",
-      "title": "Fraction that communicate",
-      "notes": "Given intelligence, probability of detectable technology.",
-      "dist": {
-        "dist": "loguniform",
-        "min": 0.01,
-        "max": 0.2
-      }
+      "unit": "%·civilizations/planets",
+      "title": "Percentage of intelligent species that communicate",
+      "notes": "Given intelligence, probability of detectable technology. The unit says what the percentage is of: communicating civilizations per intelligent planet, so the chain ends in civilizations.",
+      "dist": { "dist": "loguniform", "min": 1, "max": 20 }
+    },
+    {
+      "id": "civilizations_per_yr",
+      "kind": "formula",
+      "unit": "civilizations/yr",
+      "title": "Communicating civilizations arising, per year",
+      "notes": "Given intelligence, the chance it builds something we could detect.",
+      "expr": "planets_with_intelligence * f_c / 100"
     },
     {
       "id": "L",
       "kind": "prior.dist",
       "unit": "yr",
-      "title": "Civilization lifetime (years)",
+      "title": "Civilization lifetime",
       "notes": "How long a communicating civilization remains detectable — from a century to ten billion years.",
-      "dist": {
-        "dist": "loguniform",
-        "min": 100,
-        "max": 10000000000
-      }
+      "dist": { "dist": "loguniform", "min": 100, "max": 10000000000 }
     },
     {
       "id": "N",
       "kind": "formula",
       "title": "Communicating civilizations in the galaxy",
-      "expr": "R_star * f_p * n_e * f_l * f_i * f_c * L",
+      "notes": "Civilizations arising per year times how long each stays detectable: the number out there right now.",
+      "expr": "civilizations_per_yr * L",
       "unit": "civilizations"
     },
     {
@@ -112,45 +128,20 @@
     }
   ],
   "layout": {
-    "R_star": {
-      "x": 0,
-      "y": 0
-    },
-    "f_p": {
-      "x": 40,
-      "y": 332
-    },
-    "n_e": {
-      "x": 0,
-      "y": 663
-    },
-    "f_l": {
-      "x": 40,
-      "y": 994
-    },
-    "f_i": {
-      "x": 0,
-      "y": 1326
-    },
-    "f_c": {
-      "x": 40,
-      "y": 1658
-    },
-    "L": {
-      "x": 0,
-      "y": 1989
-    },
-    "N": {
-      "x": 430,
-      "y": 918
-    },
-    "alone": {
-      "x": 820,
-      "y": 1054
-    },
-    "result": {
-      "x": 820,
-      "y": 714
-    }
+    "R_star": { "x": 0, "y": 0 },
+    "f_p": { "x": 0, "y": 330 },
+    "stars_with_planets": { "x": 400, "y": 130 },
+    "n_e": { "x": 0, "y": 660 },
+    "habitable_planets": { "x": 400, "y": 470 },
+    "f_l": { "x": 0, "y": 990 },
+    "planets_with_life": { "x": 400, "y": 800 },
+    "f_i": { "x": 0, "y": 1320 },
+    "planets_with_intelligence": { "x": 400, "y": 1130 },
+    "f_c": { "x": 0, "y": 1650 },
+    "civilizations_per_yr": { "x": 400, "y": 1500 },
+    "L": { "x": 0, "y": 1980 },
+    "N": { "x": 400, "y": 1830 },
+    "alone": { "x": 800, "y": 1990 },
+    "result": { "x": 800, "y": 1690 }
   }
 }

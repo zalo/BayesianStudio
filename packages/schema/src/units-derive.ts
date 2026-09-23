@@ -9,6 +9,7 @@ import {
   isDimensionless,
   mulDims,
   parseUnit,
+  isPercentUnit,
   powDims,
   UnitError,
   type Dim,
@@ -242,11 +243,14 @@ export interface UnitDerivation {
 export function deriveUnits(doc: BayesDoc): UnitDerivation {
   const issues: ValidationIssue[] = [];
   const dims = new Map<string, Dim>();
+  /** Nodes whose declared unit carries a `%`: their display unit keeps it. */
+  const percent = new Set<string>();
   const byId = new Map(doc.nodes.map((n) => [n.id, n]));
   const { order } = topologicalOrder(doc);
 
   const declared = (node: AnyNode & { unit?: string }): Dim => {
     if (node.unit === undefined) return DIMENSIONLESS;
+    if (isPercentUnit(node.unit)) percent.add(node.id);
     try {
       return parseUnit(node.unit);
     } catch (e) {
@@ -345,6 +349,9 @@ export function deriveUnits(doc: BayesDoc): UnitDerivation {
   }
 
   const units: Record<string, string> = {};
-  for (const [id, d] of dims) units[id] = formatUnit(d);
+  for (const [id, d] of dims) {
+    const base = formatUnit(d);
+    units[id] = percent.has(id) ? (base ? `% ${base}` : "%") : base;
+  }
   return { units, issues };
 }

@@ -6,6 +6,12 @@
  *
  * Grammar (parse): `sym(^exp)?` factors joined by `*` or `·`, divided by `/`.
  *   "$/yr"  "stars/yr"  "planets/star"  "$*yr^-1"  "m^2"  "1" (dimensionless)
+ *
+ * `%` is special: it is a scale marker, not a dimension. "%" parses to
+ * dimensionless and "%·civilizations/planets" to civilizations/planets, so a
+ * percent-valued prior combines like the fraction it stands for. The ×100 is
+ * NOT tracked — formulas that consume a percent must divide by 100 themselves —
+ * but the display unit keeps the `%` (see deriveUnits) so readouts say "35%".
  */
 
 export type Dim = Readonly<Record<string, number>>;
@@ -23,7 +29,7 @@ const FACTOR_RE = /^([A-Za-z_$%][A-Za-z_$%0-9]*)(?:\^(-?\d+(?:\.\d+)?))?$/;
 
 export function parseUnit(src: string): Dim {
   const trimmed = src.trim();
-  if (trimmed === "" || trimmed === "1") return DIMENSIONLESS;
+  if (trimmed === "" || trimmed === "1" || trimmed === "%") return DIMENSIONLESS;
   const dim: Record<string, number> = {};
   // Split into /-separated chunks; the first is the numerator.
   const chunks = trimmed.split("/");
@@ -37,6 +43,7 @@ export function parseUnit(src: string): Dim {
       const m = FACTOR_RE.exec(factor);
       if (!m) throw new UnitError(`Malformed unit '${src}': cannot parse factor '${factor}'`);
       const sym = m[1];
+      if (sym === "%") continue; // scale marker; see the header comment
       const exp = m[2] === undefined ? 1 : Number(m[2]);
       dim[sym] = (dim[sym] ?? 0) + sign * exp;
       if (Math.abs(dim[sym]) < 1e-12) delete dim[sym];
@@ -56,6 +63,11 @@ export function formatUnit(dim: Dim): string {
     pos.length === 0 ? "1" : pos.map(([s, e]) => (e === 1 ? s : `${s}^${fmtExp(e)}`)).join("·");
   const denom = neg.map(([s, e]) => (e === -1 ? s : `${s}^${fmtExp(-e)}`)).join("/");
   return denom ? `${numer}/${denom}` : numer;
+}
+
+/** Whether a declared unit string is percent-valued (its numbers are the fraction × 100). */
+export function isPercentUnit(src: string | undefined): boolean {
+  return src !== undefined && /(^|[*·/])\s*%\s*($|[*·/])/.test(src.trim());
 }
 
 export function dimsEqual(a: Dim, b: Dim): boolean {
