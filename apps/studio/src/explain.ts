@@ -127,9 +127,13 @@ function numTex(v: number): string {
   return String(Number(v.toPrecision(4)));
 }
 
-/** Split "% civilizations/planets" into its percent sign and the rest ("" when not percent-valued). */
+/**
+ * Split a percent-valued unit into its sign and the rest: the derived form
+ * "% civilizations/planets" and the declared form "%·civilizations/planets"
+ * both give rest = "civilizations/planets"; a plain "%" gives "".
+ */
 function splitPercent(unit: string): { pct: boolean; rest: string } {
-  const m = /^%\s*(.*)$/.exec(unit);
+  const m = /^%\s*[·*]?\s*(.*)$/.exec(unit);
   return m ? { pct: true, rest: m[1] } : { pct: false, rest: unit };
 }
 
