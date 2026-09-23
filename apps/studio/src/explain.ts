@@ -127,15 +127,25 @@ function numTex(v: number): string {
   return String(Number(v.toPrecision(4)));
 }
 
-function unitTex(unit: string | undefined): string {
-  if (!unit) return "";
-  return unit === "%" ? "\\%" : `\\ \\text{${texText(unit)}}`;
+/** Split "% civilizations/planets" into its percent sign and the rest ("" when not percent-valued). */
+function splitPercent(unit: string): { pct: boolean; rest: string } {
+  const m = /^%\s*(.*)$/.exec(unit);
+  return m ? { pct: true, rest: m[1] } : { pct: false, rest: unit };
 }
 
-/** A number with its unit: "35%" for percent, "12 yr" otherwise. */
+function unitTex(unit: string | undefined): string {
+  if (!unit) return "";
+  const { pct, rest } = splitPercent(unit);
+  const restTex = rest ? `\\ \\text{${texText(rest)}}` : "";
+  return pct ? `\\%${restTex}` : restTex;
+}
+
+/** A number with its unit: "35%" or "4.4% civilizations/planets" for percent, "12 yr" otherwise. */
 function withUnit(x: number, unit?: string): string {
   if (!unit) return fmt(x);
-  return unit === "%" ? `${fmt(x)}%` : `${fmt(x)} ${unit}`;
+  const { pct, rest } = splitPercent(unit);
+  if (!pct) return `${fmt(x)} ${unit}`;
+  return rest ? `${fmt(x)}% ${rest}` : `${fmt(x)}%`;
 }
 
 const PREC: Record<BinOp | "neg" | "not", number> = {
