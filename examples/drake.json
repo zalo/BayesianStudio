@@ -1,0 +1,156 @@
+{
+  "version": 1,
+  "meta": {
+    "title": "Drake Equation / Fermi Paradox",
+    "description": "N = R* · fp · ne · fl · fi · fc · L with order-of-magnitude (log-uniform) priors, after Sandberg, Drexler & Ord's 'Dissolving the Fermi Paradox'. The point of the exercise: with honest uncertainty, the MEDIAN number of communicating civilizations can be modest while the MEAN is enormous — and P(we are alone) is not small.",
+    "seed": 42,
+    "samples": 20000
+  },
+  "nodes": [
+    {
+      "id": "R_star",
+      "kind": "prior.dist",
+      "unit": "stars/yr",
+      "title": "Star formation rate (stars/yr)",
+      "notes": "Rate of star formation in the Milky Way. Astronomy pins this reasonably well; the range covers disagreement across surveys.",
+      "dist": {
+        "dist": "loguniform",
+        "min": 1,
+        "max": 100
+      }
+    },
+    {
+      "id": "f_p",
+      "kind": "prior.dist",
+      "title": "Fraction of stars with planets",
+      "notes": "Post-Kepler this is close to 1; the lower bound is conservative.",
+      "dist": {
+        "dist": "loguniform",
+        "min": 0.1,
+        "max": 1
+      }
+    },
+    {
+      "id": "n_e",
+      "kind": "prior.dist",
+      "unit": "planets/stars",
+      "title": "Habitable planets per system",
+      "notes": "Planets per planetary system that could support life.",
+      "dist": {
+        "dist": "loguniform",
+        "min": 0.1,
+        "max": 10
+      }
+    },
+    {
+      "id": "f_l",
+      "kind": "prior.dist",
+      "title": "Fraction where life emerges",
+      "notes": "Abiogenesis probability given a habitable planet — genuinely unknown across orders of magnitude. This and f_i dominate the answer (check the tornado once sensitivity lands).",
+      "dist": {
+        "dist": "loguniform",
+        "min": 0.001,
+        "max": 1
+      }
+    },
+    {
+      "id": "f_i",
+      "kind": "prior.dist",
+      "title": "Fraction developing intelligence",
+      "notes": "Given life, probability that intelligence evolves.",
+      "dist": {
+        "dist": "loguniform",
+        "min": 0.001,
+        "max": 1
+      }
+    },
+    {
+      "id": "f_c",
+      "kind": "prior.dist",
+      "unit": "civilizations/planets",
+      "title": "Fraction that communicate",
+      "notes": "Given intelligence, probability of detectable technology.",
+      "dist": {
+        "dist": "loguniform",
+        "min": 0.01,
+        "max": 0.2
+      }
+    },
+    {
+      "id": "L",
+      "kind": "prior.dist",
+      "unit": "yr",
+      "title": "Civilization lifetime (years)",
+      "notes": "How long a communicating civilization remains detectable — from a century to ten billion years.",
+      "dist": {
+        "dist": "loguniform",
+        "min": 100,
+        "max": 10000000000
+      }
+    },
+    {
+      "id": "N",
+      "kind": "formula",
+      "title": "Communicating civilizations in the galaxy",
+      "expr": "R_star * f_p * n_e * f_l * f_i * f_c * L",
+      "unit": "civilizations"
+    },
+    {
+      "id": "alone",
+      "kind": "comparator",
+      "title": "P(we are effectively alone)",
+      "notes": "Probability that fewer than one other communicating civilization exists — the 'dissolved' Fermi paradox is that this is sizable even when the mean of N is huge.",
+      "input": "N",
+      "op": "<",
+      "value": 1
+    },
+    {
+      "id": "result",
+      "kind": "output",
+      "title": "Headline: N",
+      "target": "N"
+    }
+  ],
+  "layout": {
+    "R_star": {
+      "x": 0,
+      "y": 0
+    },
+    "f_p": {
+      "x": 40,
+      "y": 195
+    },
+    "n_e": {
+      "x": 0,
+      "y": 390
+    },
+    "f_l": {
+      "x": 40,
+      "y": 585
+    },
+    "f_i": {
+      "x": 0,
+      "y": 780
+    },
+    "f_c": {
+      "x": 40,
+      "y": 975
+    },
+    "L": {
+      "x": 0,
+      "y": 1170
+    },
+    "N": {
+      "x": 430,
+      "y": 540
+    },
+    "alone": {
+      "x": 820,
+      "y": 620
+    },
+    "result": {
+      "x": 820,
+      "y": 420
+    }
+  }
+}

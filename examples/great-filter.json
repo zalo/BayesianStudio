@@ -1,0 +1,297 @@
+{
+  "version": 1,
+  "meta": {
+    "title": "The Great Filter",
+    "description": "Extends the Drake model with a latent hypothesis: WHERE is the Great Filter? If it's early (abiogenesis is nearly impossible) or late (intelligence is nearly impossible), it is behind us and the empty sky is good news. If it's ahead, civilizations appear often but die young — and so might we. Unlike plain Drake, the priors here are NOT independent: one hidden cause couples life, intelligence, and lifetime, which is why this graph has more connections.",
+    "seed": 42,
+    "samples": 20000
+  },
+  "nodes": [
+    {
+      "id": "filter_position",
+      "kind": "prior.dist",
+      "title": "Where is the Great Filter?",
+      "notes": "The latent hypothesis everything else conditions on. 'early' = the hard step was abiogenesis; 'late' = the hard step was intelligence; 'ahead' = the hard step is surviving technology, and it is still in our future.",
+      "dist": {
+        "dist": "categorical",
+        "labels": [
+          "early",
+          "late",
+          "ahead"
+        ],
+        "probs": [
+          0.5,
+          0.3,
+          0.2
+        ]
+      }
+    },
+    {
+      "id": "R_star",
+      "kind": "prior.dist",
+      "unit": "stars/yr",
+      "title": "Star formation rate (stars/yr)",
+      "dist": {
+        "dist": "loguniform",
+        "min": 1,
+        "max": 100
+      }
+    },
+    {
+      "id": "f_p",
+      "kind": "prior.dist",
+      "title": "Fraction of stars with planets",
+      "dist": {
+        "dist": "loguniform",
+        "min": 0.1,
+        "max": 1
+      }
+    },
+    {
+      "id": "n_e",
+      "kind": "prior.dist",
+      "unit": "planets/stars",
+      "title": "Habitable planets per system",
+      "dist": {
+        "dist": "loguniform",
+        "min": 0.1,
+        "max": 10
+      }
+    },
+    {
+      "id": "f_l",
+      "kind": "cond.mixture",
+      "title": "Fraction where life emerges",
+      "notes": "Conditional on the filter hypothesis: if the filter is EARLY, abiogenesis is astronomically rare; otherwise life is reasonably common.",
+      "on": "filter_position",
+      "cases": {
+        "early": {
+          "dist": "loguniform",
+          "min": 1e-09,
+          "max": 0.001
+        },
+        "late": {
+          "dist": "loguniform",
+          "min": 0.01,
+          "max": 1
+        },
+        "ahead": {
+          "dist": "loguniform",
+          "min": 0.01,
+          "max": 1
+        }
+      }
+    },
+    {
+      "id": "f_i",
+      "kind": "cond.mixture",
+      "title": "Fraction developing intelligence",
+      "notes": "If the filter is LATE, the leap to intelligence is the near-impossible step.",
+      "on": "filter_position",
+      "cases": {
+        "early": {
+          "dist": "loguniform",
+          "min": 0.01,
+          "max": 1
+        },
+        "late": {
+          "dist": "loguniform",
+          "min": 1e-09,
+          "max": 0.001
+        },
+        "ahead": {
+          "dist": "loguniform",
+          "min": 0.01,
+          "max": 1
+        }
+      }
+    },
+    {
+      "id": "f_c",
+      "kind": "prior.dist",
+      "unit": "civilizations/planets",
+      "title": "Fraction that communicate",
+      "dist": {
+        "dist": "loguniform",
+        "min": 0.01,
+        "max": 0.2
+      }
+    },
+    {
+      "id": "L",
+      "kind": "cond.mixture",
+      "unit": "yr",
+      "title": "Civilization lifetime (years)",
+      "notes": "If the filter is AHEAD, technological civilizations self-terminate quickly; otherwise they can persist for geological time.",
+      "on": "filter_position",
+      "cases": {
+        "early": {
+          "dist": "loguniform",
+          "min": 10000,
+          "max": 10000000000
+        },
+        "late": {
+          "dist": "loguniform",
+          "min": 10000,
+          "max": 10000000000
+        },
+        "ahead": {
+          "dist": "loguniform",
+          "min": 50,
+          "max": 5000
+        }
+      }
+    },
+    {
+      "id": "N",
+      "kind": "formula",
+      "title": "Communicating civilizations in the galaxy",
+      "expr": "R_star * f_p * n_e * f_l * f_i * f_c * L",
+      "unit": "civilizations"
+    },
+    {
+      "id": "alone",
+      "kind": "comparator",
+      "title": "P(we are effectively alone)",
+      "input": "N",
+      "op": "<",
+      "value": 1
+    },
+    {
+      "id": "filter_ahead",
+      "kind": "cond.cpt",
+      "title": "Is the filter still ahead of us?",
+      "notes": "Deterministic indicator of the hypothesis — the quantity we actually care about for our own future.",
+      "parents": [
+        "filter_position"
+      ],
+      "labels": [
+        "false",
+        "true"
+      ],
+      "rows": [
+        {
+          "when": [
+            "ahead"
+          ],
+          "probs": [
+            0,
+            1
+          ]
+        },
+        {
+          "when": [
+            "*"
+          ],
+          "probs": [
+            1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "long_future",
+      "kind": "cond.cpt",
+      "title": "Humanity has a long future",
+      "notes": "P(long-lived technological humanity | filter location). If the filter is ahead, our odds look like everyone else's; if it is behind us, the main hazards are the ordinary ones.",
+      "parents": [
+        "filter_ahead"
+      ],
+      "labels": [
+        "false",
+        "true"
+      ],
+      "rows": [
+        {
+          "when": [
+            "true"
+          ],
+          "probs": [
+            0.85,
+            0.15
+          ]
+        },
+        {
+          "when": [
+            "false"
+          ],
+          "probs": [
+            0.1,
+            0.9
+          ]
+        }
+      ]
+    },
+    {
+      "id": "headline_N",
+      "kind": "output",
+      "title": "Headline: N",
+      "target": "N"
+    },
+    {
+      "id": "headline_future",
+      "kind": "output",
+      "title": "Headline: long human future",
+      "target": "long_future"
+    }
+  ],
+  "layout": {
+    "filter_position": {
+      "x": 0,
+      "y": 430
+    },
+    "R_star": {
+      "x": 60,
+      "y": 0
+    },
+    "f_p": {
+      "x": 420,
+      "y": 0
+    },
+    "n_e": {
+      "x": 780,
+      "y": 0
+    },
+    "f_l": {
+      "x": 380,
+      "y": 260
+    },
+    "f_i": {
+      "x": 380,
+      "y": 470
+    },
+    "L": {
+      "x": 380,
+      "y": 680
+    },
+    "f_c": {
+      "x": 780,
+      "y": 850
+    },
+    "N": {
+      "x": 820,
+      "y": 430
+    },
+    "alone": {
+      "x": 1180,
+      "y": 300
+    },
+    "filter_ahead": {
+      "x": 380,
+      "y": 900
+    },
+    "long_future": {
+      "x": 760,
+      "y": 1050
+    },
+    "headline_N": {
+      "x": 1180,
+      "y": 480
+    },
+    "headline_future": {
+      "x": 1120,
+      "y": 1050
+    }
+  }
+}

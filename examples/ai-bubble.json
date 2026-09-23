@@ -1,0 +1,169 @@
+{
+  "version": 1,
+  "meta": {
+    "title": "Will the AI bubble pop before 2030?",
+    "description": "'Pop' means a broad, lasting repricing of AI equities and infrastructure before 1 January 2030 — the kind of drawdown that ends a capital-spending cycle, not a correction. The model asks three things: is spending outrunning revenue, does the macro environment turn hostile, and do frontier capabilities stall? A probability table combines them, a mixture gives the size of the drawdown in each world, and a small allocation decision shows what the uncertainty is worth to a portfolio. Numbers are 2026 judgments; replace them with sourced priors as connectors arrive.",
+    "seed": 11,
+    "samples": 20000
+  },
+  "nodes": [
+    {
+      "id": "capex_growth",
+      "kind": "prior.dist",
+      "unit": "1/yr",
+      "title": "AI capital spending growth, 2026–2028",
+      "notes": "Annual growth in data-centre, chip, and power spending by the hyperscalers and their suppliers, as a fraction per year. Hyperscaler capex roughly doubled between 2023 and 2025; the median here assumes it keeps growing but slows. The P90 is a continued boom, the P10 a stall.",
+      "dist": { "dist": "percentiles", "p10": 0.05, "p50": 0.25, "p90": 0.5 }
+    },
+    {
+      "id": "revenue_growth",
+      "kind": "prior.dist",
+      "unit": "1/yr",
+      "title": "AI revenue growth, 2026–2028",
+      "notes": "Annual growth in revenue actually attributable to AI products — inference, subscriptions, enterprise contracts — as a fraction per year. Growing fast from a small base, so the spread is wide.",
+      "dist": { "dist": "percentiles", "p10": 0.15, "p50": 0.4, "p90": 0.9 }
+    },
+    {
+      "id": "spending_gap",
+      "kind": "formula",
+      "unit": "1/yr",
+      "title": "Spending growth minus revenue growth",
+      "notes": "Positive means capital is being deployed faster than revenue is arriving to pay for it. Bubbles are made of this gap persisting.",
+      "expr": "capex_growth - revenue_growth"
+    },
+    {
+      "id": "overbuild",
+      "kind": "comparator",
+      "title": "Overbuild: spending outruns revenue by more than 10 points a year",
+      "notes": "A threshold on the gap. Ten percentage points a year, sustained for three years, is a large hole to fill.",
+      "input": "spending_gap",
+      "op": ">",
+      "value": 0.1
+    },
+    {
+      "id": "rate_shock",
+      "kind": "prior.dist",
+      "title": "Rate or liquidity shock before 2030",
+      "notes": "A sharp tightening of financial conditions — rates up, credit spreads out — inside the window. Roughly the base rate of a recession-grade shock in any four-year span.",
+      "dist": { "dist": "bernoulli", "p": 0.3 }
+    },
+    {
+      "id": "capability_plateau",
+      "kind": "prior.dist",
+      "title": "Frontier capabilities plateau by 2028",
+      "notes": "No step change in what models can do between now and 2028: scaling returns flatten and the story shifts from 'what will it do next' to 'what does it cost'. A plateau removes the narrative that justifies the spend.",
+      "dist": { "dist": "bernoulli", "p": 0.35 }
+    },
+    {
+      "id": "pop",
+      "kind": "cond.cpt",
+      "title": "The bubble pops before 2030",
+      "notes": "Probability of a pop for each combination of overbuild, rate shock, and plateau. Overbuild is the main driver; a shock or a plateau on top of it makes a pop likely; without overbuild, even a shock mostly produces a correction rather than a bust.",
+      "parents": ["overbuild", "rate_shock", "capability_plateau"],
+      "labels": ["false", "true"],
+      "rows": [
+        { "when": ["true", "true", "true"], "probs": [0.1, 0.9] },
+        { "when": ["true", "true", "false"], "probs": [0.3, 0.7] },
+        { "when": ["true", "false", "true"], "probs": [0.25, 0.75] },
+        { "when": ["true", "false", "false"], "probs": [0.55, 0.45] },
+        { "when": ["false", "true", "true"], "probs": [0.6, 0.4] },
+        { "when": ["false", "true", "false"], "probs": [0.8, 0.2] },
+        { "when": ["false", "false", "true"], "probs": [0.75, 0.25] },
+        { "when": ["false", "false", "false"], "probs": [0.92, 0.08] }
+      ]
+    },
+    {
+      "id": "drawdown",
+      "kind": "cond.mixture",
+      "title": "Peak-to-trough fall in AI equities by 2030",
+      "notes": "Fraction lost from the peak, bounded on both sides because a position cannot lose more than everything. In a pop, the 2000–2002 Nasdaq (down 78%) is near the far end and a 30% fall the mild end, with the most likely outcome a little over half. Without a pop, ordinary volatility: a shakeout most likely around 12%, at worst 40%.",
+      "on": "pop",
+      "cases": {
+        "true": { "dist": "pert", "min": 0.3, "mode": 0.55, "max": 0.85 },
+        "false": { "dist": "pert", "min": 0, "mode": 0.12, "max": 0.4 }
+      }
+    },
+    {
+      "id": "severe",
+      "kind": "comparator",
+      "title": "Fall worse than 50%",
+      "notes": "The dot-com benchmark: a fall that halves the sector.",
+      "input": "drawdown",
+      "op": ">",
+      "value": 0.5
+    },
+    {
+      "id": "boom_return",
+      "kind": "prior.dist",
+      "title": "AI equity return to 2030 if there is no pop",
+      "notes": "Cumulative return on an AI basket from 2026 to 2030 in the worlds where the cycle holds: modest to spectacular.",
+      "dist": { "dist": "percentiles", "p10": 0.2, "p50": 0.6, "p90": 1.5 }
+    },
+    {
+      "id": "bond_return",
+      "kind": "prior.dist",
+      "title": "Cumulative bond return to 2030",
+      "notes": "What the money earns if it is not in AI equities.",
+      "dist": { "dist": "percentiles", "p10": 0.14, "p50": 0.2, "p90": 0.27 }
+    },
+    {
+      "id": "ai_return",
+      "kind": "formula",
+      "title": "AI equity return to 2030",
+      "notes": "In a pop, the position ends at the trough; otherwise it earns the boom return. Simplified on purpose — no rebalancing, no partial recovery.",
+      "expr": "if(pop, -drawdown, boom_return)"
+    },
+    {
+      "id": "allocation",
+      "kind": "decision",
+      "title": "Stay fully in AI, or move half to bonds?",
+      "alternatives": ["stay_in", "trim_half"]
+    },
+    {
+      "id": "portfolio_return",
+      "kind": "formula",
+      "title": "Portfolio return on the chosen allocation",
+      "notes": "Alternatives are indexed in order, so `allocation` is 0 for stay_in and 1 for trim_half.",
+      "expr": "if(allocation, 0.5 * ai_return + 0.5 * bond_return, ai_return)"
+    },
+    {
+      "id": "wealth_utility",
+      "kind": "utility",
+      "title": "Log utility of final wealth",
+      "notes": "Log utility penalises the chance of a large loss more than it rewards the chance of a large gain — which is the whole reason the answer can differ from the expected return.",
+      "expr": "1 + portfolio_return",
+      "transform": { "type": "log" }
+    },
+    {
+      "id": "headline_pop",
+      "kind": "output",
+      "title": "Headline: P(pop before 2030)",
+      "target": "pop"
+    },
+    {
+      "id": "headline_return",
+      "kind": "output",
+      "title": "Headline: portfolio return",
+      "target": "portfolio_return"
+    }
+  ],
+  "layout": {
+    "capex_growth": { "x": 0, "y": 0 },
+    "revenue_growth": { "x": 0, "y": 190 },
+    "spending_gap": { "x": 340, "y": 90 },
+    "overbuild": { "x": 680, "y": 90 },
+    "rate_shock": { "x": 680, "y": 280 },
+    "capability_plateau": { "x": 680, "y": 450 },
+    "pop": { "x": 1020, "y": 260 },
+    "drawdown": { "x": 1360, "y": 120 },
+    "severe": { "x": 1700, "y": 0 },
+    "boom_return": { "x": 1360, "y": 340 },
+    "bond_return": { "x": 1700, "y": 620 },
+    "ai_return": { "x": 1700, "y": 260 },
+    "allocation": { "x": 1700, "y": 460 },
+    "portfolio_return": { "x": 2040, "y": 360 },
+    "wealth_utility": { "x": 2380, "y": 360 },
+    "headline_pop": { "x": 1360, "y": 540 },
+    "headline_return": { "x": 2380, "y": 200 }
+  }
+}

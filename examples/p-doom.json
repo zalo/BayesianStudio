@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "meta": {
+    "title": "P(doom): AI and the end of humanity",
+    "description": "How likely is it that advanced AI ends, or permanently subjugates, humanity? The model follows the standard decomposition (after Carlsmith, 'Is Power-Seeking AI an Existential Risk?', 2021): transformative AI has to arrive, alignment has to fail by default, misaligned systems have to be deployed anyway, and they have to actually disempower us. A second path covers well-aligned AI that hands a small group permanent, unaccountable control. Every step is a credence with honest spread, so the answer is a distribution over p(doom), not a number. Edit the priors to your own beliefs — the structure is the point.",
+    "seed": 7,
+    "samples": 20000
+  },
+  "nodes": [
+    {
+      "id": "years_to_agi",
+      "kind": "prior.dist",
+      "unit": "yr",
+      "title": "Years until transformative AI",
+      "notes": "Time from 2026 until AI systems that could, in principle, automate most cognitive work and pursue long-horizon goals. Stated as percentiles: a 10% chance within about four years, a median near two decades, and a 10% chance it takes longer than 65 years. The Metaculus community medians for 'weakly general AI' and 'general AI' sat in the late 2020s to early 2030s in 2025; surveys of ML researchers (Grace et al., 2024) put a 50% chance of high-level machine intelligence around 2047. The wide right tail is deliberate.",
+      "dist": { "dist": "percentiles", "p10": 4, "p50": 20, "p90": 65 }
+    },
+    {
+      "id": "horizon",
+      "kind": "prior.dist",
+      "unit": "yr",
+      "title": "Horizon: years to 2100",
+      "notes": "The question is about this century, so the horizon is fixed at 74 years from 2026. Change it to ask about 2050 instead.",
+      "dist": { "dist": "point", "value": 74 }
+    },
+    {
+      "id": "p_agi_by_2100",
+      "kind": "formula",
+      "title": "P(transformative AI arrives before 2100)",
+      "notes": "Reads the whole timeline distribution: the share of futures in which transformative AI arrives inside the horizon. This collapses the timeline uncertainty into one probability, which is what the rest of the chain needs.",
+      "expr": "cdf(years_to_agi, horizon)"
+    },
+    {
+      "id": "p_misaligned",
+      "kind": "prior.dist",
+      "title": "P(alignment fails by default | TAI)",
+      "notes": "Given transformative AI, the chance that the systems we would build with roughly current methods pursue goals we did not intend in ways that generalise badly under pressure. Centred near 40% with wide spread: the field disagrees about whether this is the default or an avoidable failure.",
+      "dist": { "dist": "beta", "alpha": 4, "beta": 6 }
+    },
+    {
+      "id": "p_deployed",
+      "kind": "prior.dist",
+      "title": "P(deployed at scale anyway | misaligned)",
+      "notes": "Competitive pressure, unclear warning signs, and the difficulty of detecting misalignment before deployment all push this up. Centred near 60%.",
+      "dist": { "dist": "beta", "alpha": 6, "beta": 4 }
+    },
+    {
+      "id": "p_takeover",
+      "kind": "prior.dist",
+      "title": "P(humanity is disempowered | misaligned systems deployed)",
+      "notes": "Given misaligned systems are deployed widely, the chance that they, rather than we, end up in control — through direct takeover, or through humans being gradually made irrelevant. Centred near 40%: deployment of a misaligned system is not the same as losing.",
+      "dist": { "dist": "beta", "alpha": 4, "beta": 6 }
+    },
+    {
+      "id": "p_misalignment_doom",
+      "kind": "formula",
+      "title": "P(doom via misalignment)",
+      "notes": "The chain multiplied out: arrival × alignment failure × deployment × disempowerment. Each factor is uncertain, so this is a distribution over a probability.",
+      "expr": "p_agi_by_2100 * p_misaligned * p_deployed * p_takeover"
+    },
+    {
+      "id": "p_misuse_lockin",
+      "kind": "prior.dist",
+      "title": "P(permanent oppressive lock-in | TAI, no misalignment doom)",
+      "notes": "The other path: AI that does what its operators want, where the operators are a state or company that uses it to entrench control indefinitely — surveillance, automated enforcement, and no realistic route to reversal. Centred near 10%. Historically, regimes fall; the worry is that this technology removes the mechanisms by which they fall.",
+      "dist": { "dist": "beta", "alpha": 1.5, "beta": 12 }
+    },
+    {
+      "id": "p_doom",
+      "kind": "formula",
+      "title": "p(doom): extinction or permanent subjugation by 2100",
+      "notes": "Misalignment doom, plus the misuse path applied to the worlds where transformative AI arrives and misalignment doom does not happen: P(TAI) − P(misalignment doom) is exactly P(TAI and no misalignment doom).",
+      "expr": "p_misalignment_doom + (p_agi_by_2100 - p_misalignment_doom) * p_misuse_lockin"
+    },
+    {
+      "id": "risk_above_10pct",
+      "kind": "comparator",
+      "title": "Is the risk above 10%?",
+      "notes": "How much of our belief sits above a one-in-ten chance. A different question from the headline: this is confidence that the risk is large, not the size of the risk.",
+      "input": "p_doom",
+      "op": ">",
+      "value": 0.1
+    },
+    {
+      "id": "headline_doom",
+      "kind": "output",
+      "title": "Headline: p(doom)",
+      "target": "p_doom"
+    },
+    {
+      "id": "headline_misalignment",
+      "kind": "output",
+      "title": "Headline: misalignment share",
+      "target": "p_misalignment_doom"
+    }
+  ],
+  "layout": {
+    "years_to_agi": { "x": 0, "y": 0 },
+    "horizon": { "x": 0, "y": 190 },
+    "p_agi_by_2100": { "x": 340, "y": 90 },
+    "p_misaligned": { "x": 0, "y": 420 },
+    "p_deployed": { "x": 0, "y": 610 },
+    "p_takeover": { "x": 0, "y": 800 },
+    "p_misalignment_doom": { "x": 680, "y": 400 },
+    "p_misuse_lockin": { "x": 340, "y": 760 },
+    "p_doom": { "x": 1020, "y": 560 },
+    "risk_above_10pct": { "x": 1360, "y": 700 },
+    "headline_doom": { "x": 1360, "y": 520 },
+    "headline_misalignment": { "x": 1020, "y": 330 }
+  }
+}

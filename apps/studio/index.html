@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#0f1520" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#eef1f6" media="(prefers-color-scheme: light)" />
+    <meta
+      name="description"
+      content="Bayes Studio — build decision models as influence diagrams and propagate uncertainty by Monte Carlo. Every number carries its credible interval."
+    />
+    <title>Bayes Studio</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f1520'/%3E%3Cpath d='M4 24C10 24 12 7 16 7s6 17 12 17' fill='none' stroke='%234fd8a6' stroke-width='2.4' stroke-linecap='round'/%3E%3Crect x='11' y='9' width='10' height='15' fill='%234fd8a6' opacity='.22'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      // Apply the stored theme before first paint so there is no flash.
+      try {
+        var t = localStorage.getItem("bayes-theme");
+        if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

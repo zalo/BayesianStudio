@@ -1,0 +1,17 @@
+{
+  "name": "bayes-studio",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Hierarchical Bayesian Decision-making Studio",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.1"
+  },
+  "packageManager": "pnpm@11.0.9"
+}

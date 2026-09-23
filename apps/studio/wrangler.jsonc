@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bayes-studio",
+  // The account that owns the sels.tech zone. Pinned so a stray
+  // CLOUDFLARE_ACCOUNT_ID in the environment can't redirect a deploy.
+  "account_id": "ab77c04897c9dcc5f04b753c51dbe517",
+  "compatibility_date": "2026-09-01",
+  // Assets-only Worker: serves the built Vite SPA from ./dist. The API layer
+  // planned in PLAN.md §11 (Hono routes, Durable Objects, D1) adds a "main"
+  // entry here when it lands; nothing else about this config changes.
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  },
+  "routes": [{ "pattern": "bayes.sels.tech", "custom_domain": true }],
+  "workers_dev": true,
+  "observability": {
+    "enabled": true
+  }
+}
