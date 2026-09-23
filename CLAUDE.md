@@ -14,7 +14,8 @@ schema-complete but not yet implemented in the engine or UI.
 
 ## Commands
 
-pnpm workspace (`pnpm@11`, Node 22). Git repository on `main`, no remote configured. Toolchain as of
+pnpm workspace (`pnpm@11`, Node 22). Git `main` tracks `origin` = https://github.com/zalo/BayesianStudio
+(public; `gh` is authenticated as that account). Toolchain as of
 September 2026: Vite 8 (rolldown), vitest 5, zod 4, React 19.3, TypeScript 5.9, wrangler 4.
 
 ```bash
