@@ -33,7 +33,8 @@ pnpm --filter @bayes-studio/engine exec vitest run -t "golden"
 pnpm --filter @bayes-studio/studio dev
 
 # publish: vite build + wrangler deploy → https://bayes.sels.tech
-pnpm --filter @bayes-studio/studio deploy
+# (`run` is required: pnpm 11 has a built-in `deploy` command that shadows the script)
+pnpm --filter @bayes-studio/studio run deploy
 ```
 
 There is no linter or formatter configured. `apps/studio/wrangler.jsonc` is an assets-only

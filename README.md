@@ -78,7 +78,7 @@ pnpm test                                   # schema + engine (vitest)
 pnpm typecheck
 pnpm --filter @bayes-studio/studio dev      # http://localhost:5173
 pnpm --filter @bayes-studio/studio build
-pnpm --filter @bayes-studio/studio deploy   # build + wrangler deploy → bayes.sels.tech
+pnpm --filter @bayes-studio/studio run deploy   # build + wrangler deploy → bayes.sels.tech
 ```
 
 Node 22 and pnpm 11. The studio deploys as a Cloudflare Worker serving static assets; the config
